@@ -1,6 +1,7 @@
 import conexao_switch
 from datetime import datetime
 import os
+import paramiko
 
 
 # ==================================================
@@ -166,3 +167,147 @@ def salvar_local(resultado_backup, caminho):
                 f"Detalhes técnicos:\n{erro}"
             )
         }
+
+# ==================================================
+# SALVAR BACKUP SFTP
+# ==================================================
+
+def salvar_sftp(
+    resultado_backup,
+    servidor,
+    porta,
+    usuario,
+    senha,
+    diretorio
+):
+
+    cliente_ssh = None
+    sftp = None
+
+    try:
+
+        # ==================================================
+        # CONECTAR AO SERVIDOR SFTP
+        # ==================================================
+
+        cliente_ssh = paramiko.SSHClient()
+
+        cliente_ssh.set_missing_host_key_policy(
+            paramiko.AutoAddPolicy()
+        )
+
+        cliente_ssh.connect(
+            hostname=servidor,
+            port=int(porta),
+            username=usuario,
+            password=senha,
+            timeout=10
+        )
+
+
+        # ==================================================
+        # ABRIR SFTP
+        # ==================================================
+
+        sftp = cliente_ssh.open_sftp()
+
+
+        # ==================================================
+        # MONTAR CAMINHO REMOTO
+        # ==================================================
+
+        diretorio = diretorio.rstrip("/")
+
+        if diretorio:
+
+            arquivo_remoto = (
+                f"{diretorio}/"
+                f"{resultado_backup['nome_arquivo']}"
+            )
+
+        else:
+
+            arquivo_remoto = (
+                resultado_backup["nome_arquivo"]
+            )
+
+
+        # ==================================================
+        # CRIAR ARQUIVO NO SERVIDOR
+        # ==================================================
+
+        with sftp.file(
+            arquivo_remoto,
+            "w"
+        ) as arquivo:
+
+            arquivo.write(
+                resultado_backup["configuracao"]
+            )
+
+
+        # ==================================================
+        # FECHAR CONEXÕES
+        # ==================================================
+
+        sftp.close()
+        cliente_ssh.close()
+
+
+        # ==================================================
+        # RETORNO
+        # ==================================================
+
+        return {
+            "sucesso": True,
+            "arquivo": arquivo_remoto
+        }
+
+
+    except paramiko.AuthenticationException:
+
+        return {
+            "sucesso": False,
+            "tipo": "autenticacao",
+            "titulo": "Erro de autenticação SFTP",
+            "mensagem": (
+                "Não foi possível autenticar "
+                "no servidor SFTP.\n\n"
+                "Verifique o usuário e a senha."
+            )
+        }
+
+
+    except Exception as erro:
+
+        return {
+            "sucesso": False,
+            "tipo": "sftp",
+            "titulo": "Erro no Backup SFTP",
+            "mensagem": (
+                "Não foi possível enviar "
+                "o backup para o servidor SFTP.\n\n"
+                f"Detalhes técnicos:\n{erro}"
+            )
+        }
+
+    finally:
+
+        # ==================================================
+        # GARANTIR O FECHAMENTO DAS CONEXÕES
+        # ==================================================
+
+        if sftp:
+
+            try:
+                sftp.close()
+            except:
+                pass
+
+        if cliente_ssh:
+
+            try:
+                cliente_ssh.close()
+            except:
+                pass
+

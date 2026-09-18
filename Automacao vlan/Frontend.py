@@ -322,9 +322,142 @@ def abrir_backup():
 
     def backup_sftp():
 
-        status_backup.configure(
-            text="Configuração SFTP será implementada."
+        janela_sftp = ctk.CTkToplevel(janela_backup)
+        janela_sftp.title("Backup SFTP")
+        janela_sftp.geometry("520x430")
+        janela_sftp.grab_set()
+
+        titulo_sftp = ctk.CTkLabel(
+            janela_sftp,
+            text="Enviar Backup para SFTP",
+            font=("Arial", 18, "bold")
         )
+        titulo_sftp.pack(pady=(20, 15))
+
+        campo_servidor = ctk.CTkEntry(
+            janela_sftp,
+            width=380,
+            placeholder_text="Servidor SFTP"
+        )
+        campo_servidor.pack(pady=6)
+
+        campo_porta = ctk.CTkEntry(
+            janela_sftp,
+            width=380,
+            placeholder_text="Porta"
+        )
+        campo_porta.insert(0, "22")
+        campo_porta.pack(pady=6)
+
+        campo_usuario = ctk.CTkEntry(
+            janela_sftp,
+            width=380,
+            placeholder_text="Usuário"
+        )
+        campo_usuario.pack(pady=6)
+
+        campo_senha = ctk.CTkEntry(
+            janela_sftp,
+            width=380,
+            placeholder_text="Senha",
+            show="*"
+        )
+        campo_senha.pack(pady=6)
+
+        campo_diretorio = ctk.CTkEntry(
+            janela_sftp,
+            width=380,
+            placeholder_text="Diretório remoto"
+        )
+        campo_diretorio.pack(pady=6)
+
+        status_sftp = ctk.CTkLabel(
+            janela_sftp,
+            text=""
+        )
+        status_sftp.pack(pady=8)
+
+        def enviar_backup_sftp():
+
+            servidor = campo_servidor.get().strip()
+            porta = campo_porta.get().strip()
+            usuario = campo_usuario.get().strip()
+            senha = campo_senha.get().strip()
+            diretorio = campo_diretorio.get().strip()
+
+            if not servidor:
+                status_sftp.configure(text="Digite o servidor SFTP")
+                return
+
+            if not porta:
+                status_sftp.configure(text="Digite a porta SFTP")
+                return
+
+            if not porta.isdigit():
+                status_sftp.configure(text="A porta SFTP deve ser numérica")
+                return
+
+            if not usuario:
+                status_sftp.configure(text="Digite o usuário SFTP")
+                return
+
+            if not senha:
+                status_sftp.configure(text="Digite a senha SFTP")
+                return
+
+            status_sftp.configure(text="Obtendo configuração do switch...")
+            status_backup.configure(text="Obtendo configuração...")
+            janela_sftp.update()
+
+            resultado = backup_sw.obter_backup(ip_sw)
+
+            if not resultado["sucesso"]:
+                messagebox.showerror(
+                    resultado["titulo"],
+                    resultado["mensagem"]
+                )
+                status_sftp.configure(text=resultado["titulo"])
+                status_backup.configure(text=resultado["titulo"])
+                return
+
+            status_sftp.configure(text="Enviando backup para o SFTP...")
+            status_backup.configure(text="Enviando backup para o SFTP...")
+            janela_sftp.update()
+
+            salvamento = backup_sw.salvar_sftp(
+                resultado_backup=resultado,
+                servidor=servidor,
+                porta=porta,
+                usuario=usuario,
+                senha=senha,
+                diretorio=diretorio
+            )
+
+            if salvamento["sucesso"]:
+                messagebox.showinfo(
+                    "Backup SFTP concluído",
+                    f"Backup enviado com sucesso!\n\n"
+                    f"Hostname: {resultado['hostname']}\n"
+                    f"Arquivo: {resultado['nome_arquivo']}\n"
+                    f"Destino: {salvamento['arquivo']}"
+                )
+                status_sftp.configure(text="Backup SFTP realizado com sucesso!")
+                status_backup.configure(text="Backup SFTP realizado com sucesso!")
+
+            else:
+                messagebox.showerror(
+                    salvamento["titulo"],
+                    salvamento["mensagem"]
+                )
+                status_sftp.configure(text=salvamento["titulo"])
+                status_backup.configure(text=salvamento["titulo"])
+
+        botao_enviar_sftp = ctk.CTkButton(
+            janela_sftp,
+            text="Enviar Backup",
+            command=enviar_backup_sftp
+        )
+        botao_enviar_sftp.pack(pady=10)
 
     botao_local = ctk.CTkButton(
         janela_backup,
@@ -597,11 +730,16 @@ def configurar_switch():
         )
 
         # ==================================================
-        # ETAPA 1 - BACKUP LOCAL
+        # ETAPAS 1 E 2 - BACKUP LOCAL / SFTP
         # ==================================================
 
-        if backup_local:
-            status_config.configure(text="Realizando backup local...")
+        resultado_backup = None
+
+        # Obtém o running-config apenas uma vez caso algum
+        # dos dois tipos de backup tenha sido solicitado.
+        if backup_local or backup_sftp:
+
+            status_config.configure(text="Obtendo configuração para backup...")
             app.update()
 
             resultado_backup = backup_sw.obter_backup(
@@ -621,6 +759,15 @@ def configurar_switch():
                     text=resultado_backup["titulo"]
                 )
                 return
+
+        # ==================================================
+        # ETAPA 1 - BACKUP LOCAL
+        # ==================================================
+
+        if backup_local:
+
+            status_config.configure(text="Salvando backup local...")
+            app.update()
 
             salvamento = backup_sw.salvar_local(
                 resultado_backup,
@@ -649,6 +796,7 @@ def configurar_switch():
                     text=salvamento["titulo"]
                 )
                 return
+
         else:
             lista_resultado.insert(
                 "end",
@@ -660,10 +808,42 @@ def configurar_switch():
         # ==================================================
 
         if backup_sftp:
-            lista_resultado.insert(
-                "end",
-                "Backup SFTP: ainda não implementado.\n"
+
+            status_config.configure(text="Enviando backup para o SFTP...")
+            app.update()
+
+            salvamento_sftp = backup_sw.salvar_sftp(
+                resultado_backup=resultado_backup,
+                servidor=servidor_sftp,
+                porta=porta_sftp,
+                usuario=usuario_sftp,
+                senha=senha_sftp,
+                diretorio=diretorio_sftp
             )
+
+            if salvamento_sftp["sucesso"]:
+                lista_resultado.insert(
+                    "end",
+                    "Backup SFTP realizado com sucesso.\n"
+                )
+                lista_resultado.insert(
+                    "end",
+                    f"Arquivo remoto: {salvamento_sftp['arquivo']}\n"
+                )
+            else:
+                messagebox.showerror(
+                    salvamento_sftp["titulo"],
+                    salvamento_sftp["mensagem"]
+                )
+                lista_resultado.insert(
+                    "end",
+                    salvamento_sftp["mensagem"] + "\n"
+                )
+                status_config.configure(
+                    text=salvamento_sftp["titulo"]
+                )
+                return
+
         else:
             lista_resultado.insert(
                 "end",
@@ -929,16 +1109,238 @@ def configurar_switch():
             )
 
         # ==================================================
-        # FINAL
+        # ETAPA 5 - VALIDAÇÃO FINAL
         # ==================================================
+
+        status_config.configure(text="Realizando validação final...")
+        app.update()
+
+        lista_resultado.insert(
+            "end",
+            "\n\n========== VALIDAÇÃO FINAL ==========\n"
+        )
+
+        divergencias = []
+
+        # --------------------------------------------------
+        # VALIDAR HOSTNAME
+        # --------------------------------------------------
+
+        if hostname:
+
+            resultado_validacao_hostname = configurar_hostname.consultar_hostname(
+                net_connect=net_connect
+            )
+
+            if not resultado_validacao_hostname["sucesso"]:
+
+                mensagem_erro = resultado_validacao_hostname.get(
+                    "mensagem",
+                    resultado_validacao_hostname.get(
+                        "erro",
+                        "Erro desconhecido"
+                    )
+                )
+
+                divergencias.append(
+                    f"Não foi possível validar o hostname: {mensagem_erro}"
+                )
+
+                lista_resultado.insert(
+                    "end",
+                    "Hostname: ERRO NA VALIDAÇÃO\n"
+                )
+
+            else:
+
+                hostname_encontrado = resultado_validacao_hostname["hostname"]
+
+                if hostname_encontrado == hostname:
+
+                    lista_resultado.insert(
+                        "end",
+                        f"Hostname: {hostname} [OK]\n"
+                    )
+
+                else:
+
+                    divergencias.append(
+                        f"Hostname - Desejado: {hostname} | "
+                        f"Encontrado: {hostname_encontrado}"
+                    )
+
+                    lista_resultado.insert(
+                        "end",
+                        "Hostname: [DIVERGÊNCIA]\n"
+                    )
+
+                    lista_resultado.insert(
+                        "end",
+                        f"  Desejado: {hostname}\n"
+                    )
+
+                    lista_resultado.insert(
+                        "end",
+                        f"  Encontrado: {hostname_encontrado}\n"
+                    )
+
+        else:
+
+            lista_resultado.insert(
+                "end",
+                "Hostname: não solicitado.\n"
+            )
+
+        # --------------------------------------------------
+        # VALIDAR VLANS
+        # --------------------------------------------------
+
+        if vlans_configuracao:
+
+            for vlan_id, vlan_nome in vlans_configuracao.items():
+
+                resultado_validacao_vlan = configurar_vlan.consultar_vlan(
+                    vlan_id=vlan_id,
+                    net_connect=net_connect
+                )
+
+                if not resultado_validacao_vlan["sucesso"]:
+
+                    mensagem_erro = resultado_validacao_vlan.get(
+                        "mensagem",
+                        resultado_validacao_vlan.get(
+                            "erro",
+                            "Erro desconhecido"
+                        )
+                    )
+
+                    divergencias.append(
+                        f"VLAN {vlan_id} - erro na validação: {mensagem_erro}"
+                    )
+
+                    lista_resultado.insert(
+                        "end",
+                        f"VLAN {vlan_id}: ERRO NA VALIDAÇÃO\n"
+                    )
+
+                    continue
+
+                if not resultado_validacao_vlan["existe"]:
+
+                    divergencias.append(
+                        f"VLAN {vlan_id} - Desejada: {vlan_nome} | "
+                        f"Encontrada: VLAN inexistente"
+                    )
+
+                    lista_resultado.insert(
+                        "end",
+                        f"VLAN {vlan_id}: [DIVERGÊNCIA]\n"
+                    )
+
+                    lista_resultado.insert(
+                        "end",
+                        f"  Desejado: {vlan_nome}\n"
+                    )
+
+                    lista_resultado.insert(
+                        "end",
+                        "  Encontrado: VLAN inexistente\n"
+                    )
+
+                    continue
+
+                nome_encontrado = resultado_validacao_vlan["nome"]
+
+                if nome_encontrado == vlan_nome:
+
+                    lista_resultado.insert(
+                        "end",
+                        f"VLAN {vlan_id} - {vlan_nome} [OK]\n"
+                    )
+
+                else:
+
+                    divergencias.append(
+                        f"VLAN {vlan_id} - Desejado: {vlan_nome} | "
+                        f"Encontrado: {nome_encontrado}"
+                    )
+
+                    lista_resultado.insert(
+                        "end",
+                        f"VLAN {vlan_id}: [DIVERGÊNCIA]\n"
+                    )
+
+                    lista_resultado.insert(
+                        "end",
+                        f"  Desejado: {vlan_nome}\n"
+                    )
+
+                    lista_resultado.insert(
+                        "end",
+                        f"  Encontrado: {nome_encontrado}\n"
+                    )
+
+        else:
+
+            lista_resultado.insert(
+                "end",
+                "VLANs: nenhuma VLAN solicitada.\n"
+            )
+
+        # ==================================================
+        # RESULTADO DA VALIDAÇÃO
+        # ==================================================
+
+        if divergencias:
+
+            lista_resultado.insert(
+                "end",
+                "\nATENÇÃO: foram encontradas divergências.\n"
+            )
+
+            lista_resultado.insert(
+                "end",
+                "Estado desejado != Estado encontrado.\n"
+            )
+
+            status_config.configure(
+                text="Configuração concluída com divergências!"
+            )
+
+            messagebox.showerror(
+                "Erro na Validação",
+                "A configuração foi executada, mas foram encontradas "
+                "divergências durante a validação final.\n\n"
+                "Status: ERRO\n\n"
+                "Consulte o log de resultados para verificar os detalhes."
+            )
+
+        else:
+
+            lista_resultado.insert(
+                "end",
+                "\nEstado desejado = Estado encontrado.\n"
+            )
+
+            lista_resultado.insert(
+                "end",
+                "Validação concluída com sucesso.\n"
+            )
+
+            status_config.configure(
+                text="Configuração e validação concluídas com sucesso!"
+            )
+
+            messagebox.showinfo(
+                "Implementação e Validação",
+                "Configuração implementada e validada com sucesso!\n\n"
+                "Todos os parâmetros solicitados foram conferidos no switch.\n\n"
+                "Status: OK"
+            )
 
         lista_resultado.insert(
             "end",
             "\nProcesso finalizado."
-        )
-
-        status_config.configure(
-            text="Configuração finalizada com sucesso!"
         )
 
     except Exception as erro:
