@@ -5,7 +5,7 @@ def conectar_switch(ip_sw):
     Network_Device = {
         "host": ip_sw,
         "username": "admin",
-        "password": "admin1",
+        "password": "admin",
         "device_type": "cisco_ios",
         "session_log": "teste_output.txt"
     }

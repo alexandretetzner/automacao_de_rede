@@ -7,3 +7,5 @@ Versão do Pyton - 3.13.15
 Pacotes necessários
 NETMIKO
 $ pip install netmiko
+
+$ pip install ntc-templates
