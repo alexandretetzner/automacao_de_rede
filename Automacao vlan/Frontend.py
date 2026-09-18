@@ -618,7 +618,7 @@ def atualizar_opcao_sftp():
             padx=20,
             pady=(0, 10),
             fill="x",
-            before=frame_vlan
+            after=frame_backup_config
         )
 
     else:
@@ -1423,14 +1423,14 @@ abas.pack(
     expand=True
 )
 
+aba_config = abas.add(
+    "Configuração"
+)
 
 aba_tools = abas.add(
     "Tools"
 )
 
-aba_config = abas.add(
-    "Configuração"
-)
 
 
 # ==================================================
@@ -1610,35 +1610,179 @@ frame_switch_config = ctk.CTkFrame(
 
 frame_switch_config.pack(
     padx=20,
-    pady=5
+    pady=5,
+    fill="x"
 )
 
+label_ip_config = ctk.CTkLabel(
+    frame_switch_config,
+    text="Informe o IP do Switch:",
+    font=("Arial", 13, "bold"),
+    width=190,
+    anchor="w"
+)
+
+label_ip_config.grid(
+    row=0,
+    column=0,
+    padx=(15, 10),
+    pady=(15, 8),
+    sticky="w"
+)
 
 campo_ip_config = ctk.CTkEntry(
     frame_switch_config,
-    width=220,
-    placeholder_text="IP do Switch"
+    width=300,
+    placeholder_text="Ex.: 192.168.1.10"
 )
 
 campo_ip_config.grid(
     row=0,
-    column=0,
+    column=1,
     padx=10,
-    pady=12
+    pady=(15, 8),
+    sticky="w"
 )
 
+label_hostname_config = ctk.CTkLabel(
+    frame_switch_config,
+    text="Informe o Hostname:",
+    font=("Arial", 13, "bold"),
+    width=190,
+    anchor="w"
+)
+
+label_hostname_config.grid(
+    row=1,
+    column=0,
+    padx=(15, 10),
+    pady=(8, 15),
+    sticky="w"
+)
 
 campo_hostname = ctk.CTkEntry(
     frame_switch_config,
-    width=250,
-    placeholder_text="Novo Hostname (Opcional)"
+    width=300,
+    placeholder_text="Ex.: SWITCH_AUTOMACAO"
 )
 
 campo_hostname.grid(
-    row=0,
+    row=1,
     column=1,
     padx=10,
-    pady=12
+    pady=(8, 15),
+    sticky="w"
+)
+
+
+# ==================================================
+# CONFIGURAÇÃO DAS VLANS
+# ==================================================
+
+frame_vlan = ctk.CTkFrame(
+    scroll_config
+)
+
+frame_vlan.pack(
+    padx=20,
+    pady=5,
+    fill="x"
+)
+
+label_vlan = ctk.CTkLabel(
+    frame_vlan,
+    text="Informe a VLAN:",
+    font=("Arial", 14, "bold")
+)
+
+label_vlan.grid(
+    row=0,
+    column=0,
+    columnspan=3,
+    padx=15,
+    pady=(12, 5),
+    sticky="w"
+)
+
+label_vlan_id = ctk.CTkLabel(
+    frame_vlan,
+    text="VLAN ID:"
+)
+
+label_vlan_id.grid(
+    row=1,
+    column=0,
+    padx=(15, 5),
+    pady=10,
+    sticky="e"
+)
+
+campo_vlan_id = ctk.CTkEntry(
+    frame_vlan,
+    width=120,
+    placeholder_text="Ex.: 10"
+)
+
+campo_vlan_id.grid(
+    row=1,
+    column=1,
+    padx=5,
+    pady=10
+)
+
+label_vlan_nome = ctk.CTkLabel(
+    frame_vlan,
+    text="Nome:"
+)
+
+label_vlan_nome.grid(
+    row=1,
+    column=2,
+    padx=(15, 5),
+    pady=10,
+    sticky="e"
+)
+
+campo_vlan_nome = ctk.CTkEntry(
+    frame_vlan,
+    width=220,
+    placeholder_text="Ex.: VLAN_DADOS"
+)
+
+campo_vlan_nome.grid(
+    row=1,
+    column=3,
+    padx=5,
+    pady=10
+)
+
+botao_adicionar_vlan = ctk.CTkButton(
+    frame_vlan,
+    text="Adicionar VLAN",
+    command=adicionar_vlan
+)
+
+botao_adicionar_vlan.grid(
+    row=1,
+    column=4,
+    padx=15,
+    pady=10
+)
+
+
+# ==================================================
+# LISTA DE VLANS PARA CONFIGURAÇÃO
+# ==================================================
+
+lista_config = ctk.CTkTextbox(
+    scroll_config,
+    width=700,
+    height=80
+)
+
+lista_config.pack(
+    padx=20,
+    pady=5
 )
 
 
@@ -1656,10 +1800,9 @@ frame_backup_config.pack(
     fill="x"
 )
 
-
 label_backup = ctk.CTkLabel(
     frame_backup_config,
-    text="Backup antes da configuração:",
+    text="Selecione o tipo de Backup:",
     font=("Arial", 14, "bold")
 )
 
@@ -1685,7 +1828,6 @@ caminho_backup_local = ctk.StringVar(
     value=""
 )
 
-
 check_backup_local = ctk.CTkCheckBox(
     frame_backup_config,
     text="Backup Local",
@@ -1700,7 +1842,6 @@ check_backup_local.grid(
     pady=10,
     sticky="w"
 )
-
 
 campo_caminho_backup = ctk.CTkEntry(
     frame_backup_config,
@@ -1724,7 +1865,6 @@ campo_caminho_backup.grid(
 backup_sftp_var = ctk.BooleanVar(
     value=False
 )
-
 
 check_backup_sftp = ctk.CTkCheckBox(
     frame_backup_config,
@@ -1750,7 +1890,6 @@ frame_sftp = ctk.CTkFrame(
     scroll_config
 )
 
-
 label_sftp = ctk.CTkLabel(
     frame_sftp,
     text="Configuração do Servidor SFTP",
@@ -1765,7 +1904,6 @@ label_sftp.grid(
     pady=(10, 5)
 )
 
-
 campo_sftp_servidor = ctk.CTkEntry(
     frame_sftp,
     width=150,
@@ -1778,7 +1916,6 @@ campo_sftp_servidor.grid(
     padx=5,
     pady=10
 )
-
 
 campo_sftp_porta = ctk.CTkEntry(
     frame_sftp,
@@ -1798,7 +1935,6 @@ campo_sftp_porta.grid(
     pady=10
 )
 
-
 campo_sftp_usuario = ctk.CTkEntry(
     frame_sftp,
     width=130,
@@ -1811,7 +1947,6 @@ campo_sftp_usuario.grid(
     padx=5,
     pady=10
 )
-
 
 campo_sftp_senha = ctk.CTkEntry(
     frame_sftp,
@@ -1827,7 +1962,6 @@ campo_sftp_senha.grid(
     pady=10
 )
 
-
 campo_sftp_diretorio = ctk.CTkEntry(
     frame_sftp,
     width=160,
@@ -1839,78 +1973,6 @@ campo_sftp_diretorio.grid(
     column=4,
     padx=5,
     pady=10
-)
-
-
-# ==================================================
-# CONFIGURAÇÃO DAS VLANS
-# ==================================================
-
-frame_vlan = ctk.CTkFrame(
-    scroll_config
-)
-
-frame_vlan.pack(
-    padx=20,
-    pady=5
-)
-
-
-campo_vlan_id = ctk.CTkEntry(
-    frame_vlan,
-    width=120,
-    placeholder_text="VLAN ID"
-)
-
-campo_vlan_id.grid(
-    row=0,
-    column=0,
-    padx=10,
-    pady=12
-)
-
-
-campo_vlan_nome = ctk.CTkEntry(
-    frame_vlan,
-    width=220,
-    placeholder_text="Nome da VLAN"
-)
-
-campo_vlan_nome.grid(
-    row=0,
-    column=1,
-    padx=10,
-    pady=12
-)
-
-
-botao_adicionar_vlan = ctk.CTkButton(
-    frame_vlan,
-    text="Adicionar VLAN",
-    command=adicionar_vlan
-)
-
-botao_adicionar_vlan.grid(
-    row=0,
-    column=2,
-    padx=10,
-    pady=12
-)
-
-
-# ==================================================
-# LISTA DE VLANS PARA CONFIGURAÇÃO
-# ==================================================
-
-lista_config = ctk.CTkTextbox(
-    scroll_config,
-    width=700,
-    height=80
-)
-
-lista_config.pack(
-    padx=20,
-    pady=5
 )
 
 
