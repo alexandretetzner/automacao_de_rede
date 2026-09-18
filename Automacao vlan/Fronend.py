@@ -4,7 +4,13 @@ from tkinter import filedialog
 import logonsw
 import levantamento_vlan
 import backup_sw
+import configurar_vlan
 
+# ==================================================
+# VARIAVEIS
+# ==================================================
+
+vlans_configuracao = {}
 
 # ==================================================
 # FUNÇÕES
@@ -234,6 +240,128 @@ def abrir_backup():
         pady=10
     )
 
+# --------------------------------------------------
+# CONFIGURAR VLAN
+# --------------------------------------------------
+
+def adicionar_vlan():
+
+    vlan_id = campo_vlan_id.get().strip()
+    vlan_nome = campo_vlan_nome.get().strip()
+
+    if not vlan_id:
+        status_config.configure(
+            text="Digite o ID da VLAN"
+        )
+        return
+
+    if not vlan_id.isdigit():
+        status_config.configure(
+            text="O ID da VLAN deve ser numérico"
+        )
+        return
+
+    if not vlan_nome:
+        status_config.configure(
+            text="Digite o nome da VLAN"
+        )
+        return
+
+    # Adiciona VLAN ao dicionário
+    vlans_configuracao[int(vlan_id)] = vlan_nome
+
+    atualizar_lista_configuracao()
+
+    # Limpa os campos
+    campo_vlan_id.delete(0, "end")
+    campo_vlan_nome.delete(0, "end")
+
+    status_config.configure(
+        text=f"VLAN {vlan_id} adicionada à lista"
+    )
+
+
+def atualizar_lista_configuracao():
+
+    lista_config.delete("1.0", "end")
+
+    for vlan_id, vlan_nome in vlans_configuracao.items():
+
+        lista_config.insert(
+            "end",
+            f"VLAN {vlan_id} | {vlan_nome}\n"
+        )
+
+
+def limpar_vlans():
+
+    vlans_configuracao.clear()
+
+    lista_config.delete(
+        "1.0",
+        "end"
+    )
+
+    status_config.configure(
+        text="Lista de VLANs limpa"
+    )
+
+
+def configurar_vlans_switch():
+
+    ip_sw = campo_ip_config.get().strip()
+
+    if not ip_sw:
+        status_config.configure(
+            text="Digite o IP do Switch"
+        )
+        return
+
+    if not vlans_configuracao:
+        status_config.configure(
+            text="Adicione pelo menos uma VLAN"
+        )
+        return
+
+    status_config.configure(
+        text="Configurando VLANs..."
+    )
+
+    app.update()
+
+    resultado = configurar_vlan.configurar_vlans(
+        ip_sw,
+        vlans_configuracao
+    )
+
+    lista_resultado.delete(
+        "1.0",
+        "end"
+    )
+
+    if resultado["sucesso"]:
+
+        for mensagem in resultado["resultados"]:
+
+            lista_resultado.insert(
+                "end",
+                mensagem + "\n"
+            )
+
+        status_config.configure(
+            text="Configuração finalizada!"
+        )
+
+    else:
+
+        lista_resultado.insert(
+            "end",
+            "Erro: " + resultado["erro"]
+        )
+
+        status_config.configure(
+            text="Erro durante a configuração"
+        )
 
 # ==================================================
 # CONFIGURAÇÃO CUSTOMTKINTER
@@ -428,24 +556,183 @@ lista_vlans.pack(
 
 titulo_config = ctk.CTkLabel(
     aba_config,
-    text="Configuração do Switch",
+    text="Configuração de VLANs",
     font=("Arial", 18, "bold")
 )
 
 titulo_config.pack(
-    pady=(30, 10)
+    pady=(20, 10)
 )
 
 
-texto_config = ctk.CTkLabel(
+# ==================================================
+# IP DO SWITCH
+# ==================================================
+
+campo_ip_config = ctk.CTkEntry(
     aba_config,
-    text="Área destinada à configuração do Switch."
+    width=250,
+    placeholder_text="IP do Switch"
 )
 
-texto_config.pack(
+campo_ip_config.pack(
     pady=10
 )
 
+
+# ==================================================
+# FRAME VLAN
+# ==================================================
+
+frame_vlan = ctk.CTkFrame(
+    aba_config
+)
+
+frame_vlan.pack(
+    padx=20,
+    pady=10
+)
+
+
+# ==================================================
+# VLAN ID
+# ==================================================
+
+campo_vlan_id = ctk.CTkEntry(
+    frame_vlan,
+    width=120,
+    placeholder_text="VLAN ID"
+)
+
+campo_vlan_id.grid(
+    row=0,
+    column=0,
+    padx=10,
+    pady=15
+)
+
+
+# ==================================================
+# VLAN NAME
+# ==================================================
+
+campo_vlan_nome = ctk.CTkEntry(
+    frame_vlan,
+    width=200,
+    placeholder_text="Nome da VLAN"
+)
+
+campo_vlan_nome.grid(
+    row=0,
+    column=1,
+    padx=10,
+    pady=15
+)
+
+
+# ==================================================
+# ADICIONAR VLAN
+# ==================================================
+
+botao_adicionar_vlan = ctk.CTkButton(
+    frame_vlan,
+    text="Adicionar VLAN",
+    command=adicionar_vlan
+)
+
+botao_adicionar_vlan.grid(
+    row=0,
+    column=2,
+    padx=10,
+    pady=15
+)
+
+
+# ==================================================
+# LISTA DAS VLANS
+# ==================================================
+
+lista_config = ctk.CTkTextbox(
+    aba_config,
+    width=600,
+    height=100
+)
+
+lista_config.pack(
+    padx=20,
+    pady=10
+)
+
+
+# ==================================================
+# BOTÕES
+# ==================================================
+
+frame_botoes_config = ctk.CTkFrame(
+    aba_config
+)
+
+frame_botoes_config.pack(
+    pady=5
+)
+
+
+botao_configurar = ctk.CTkButton(
+    frame_botoes_config,
+    text="Configurar VLANs",
+    command=configurar_vlans_switch
+)
+
+botao_configurar.grid(
+    row=0,
+    column=0,
+    padx=10,
+    pady=10
+)
+
+
+botao_limpar = ctk.CTkButton(
+    frame_botoes_config,
+    text="Limpar Lista",
+    command=limpar_vlans
+)
+
+botao_limpar.grid(
+    row=0,
+    column=1,
+    padx=10,
+    pady=10
+)
+
+
+# ==================================================
+# RESULTADO
+# ==================================================
+
+lista_resultado = ctk.CTkTextbox(
+    aba_config,
+    width=600,
+    height=100
+)
+
+lista_resultado.pack(
+    padx=20,
+    pady=10
+)
+
+
+# ==================================================
+# STATUS
+# ==================================================
+
+status_config = ctk.CTkLabel(
+    aba_config,
+    text="Aguardando configuração..."
+)
+
+status_config.pack(
+    pady=5
+)
 
 # ==================================================
 # EXECUTA A INTERFACE
