@@ -1,37 +1,67 @@
 import conexao_switch
 
-# ==================================================
-# DADOS DE CONEXÃO
-# ==================================================
-
-def dados_switch(ip_sw):
-
-    return {
-        "host": ip_sw,
-        "username": "admin",
-        "password": "admin",
-        "device_type": "cisco_ios",
-        "session_log": "config_vlan_output.txt"
-    }
-
 
 # ==================================================
 # CONSULTAR VLAN
 # ==================================================
 
-def consultar_vlan(ip_sw, vlan_id):
+def consultar_vlan(
+    vlan_id,
+    ip_sw=None,
+    net_connect=None
+):
+
+    conexao_criada_aqui = False
 
     try:
 
-        net_connect = conexao_switch.conectar_switch(ip_sw,"config_vlan_output.txt")
+        # ==================================================
+        # CONECTAR AO SWITCH
+        # ==================================================
+
+        if net_connect is None:
+
+            resultado_conexao = conexao_switch.conectar_switch(
+                ip_sw,
+                "config_vlan_output.txt"
+            )
+
+            if not resultado_conexao["sucesso"]:
+
+                return {
+                    "sucesso": False,
+                    "tipo": resultado_conexao["tipo"],
+                    "titulo": resultado_conexao["titulo"],
+                    "mensagem": resultado_conexao["mensagem"]
+                }
+
+            net_connect = resultado_conexao["conexao"]
+
+            conexao_criada_aqui = True
+
+
+        # ==================================================
+        # CONSULTAR VLAN
+        # ==================================================
 
         resultado = net_connect.send_command(
             f"show vlan id {vlan_id}"
         )
 
-        net_connect.disconnect()
 
+        # ==================================================
+        # DESCONECTAR SOMENTE SE CONECTOU AQUI
+        # ==================================================
+
+        if conexao_criada_aqui:
+
+            net_connect.disconnect()
+
+
+        # ==================================================
         # VLAN NÃO EXISTE
+        # ==================================================
+
         if "not found in current VLAN database" in resultado:
 
             return {
@@ -42,8 +72,9 @@ def consultar_vlan(ip_sw, vlan_id):
             }
 
 
+        # ==================================================
         # VLAN EXISTE
-        # Procura a linha que começa com o ID da VLAN
+        # ==================================================
 
         for linha in resultado.splitlines():
 
@@ -61,9 +92,15 @@ def consultar_vlan(ip_sw, vlan_id):
                 }
 
 
+        # ==================================================
+        # NÃO FOI POSSÍVEL IDENTIFICAR
+        # ==================================================
+
         return {
             "sucesso": False,
-            "erro": (
+            "tipo": "validacao",
+            "titulo": "Erro ao consultar VLAN",
+            "mensagem": (
                 f"Não foi possível identificar "
                 f"a VLAN {vlan_id}."
             )
@@ -72,9 +109,22 @@ def consultar_vlan(ip_sw, vlan_id):
 
     except Exception as erro:
 
+        if conexao_criada_aqui and net_connect:
+
+            try:
+                net_connect.disconnect()
+            except:
+                pass
+
         return {
             "sucesso": False,
-            "erro": str(erro)
+            "tipo": "desconhecido",
+            "titulo": "Erro ao consultar VLAN",
+            "mensagem": (
+                f"Ocorreu um erro ao consultar "
+                f"a VLAN {vlan_id}.\n\n"
+                f"Detalhes técnicos:\n{erro}"
+            )
         }
 
 
@@ -82,13 +132,45 @@ def consultar_vlan(ip_sw, vlan_id):
 # CRIAR VLAN
 # ==================================================
 
-def criar_vlan(ip_sw, vlan_id, vlan_nome):
+def criar_vlan(
+    vlan_id,
+    vlan_nome,
+    ip_sw=None,
+    net_connect=None
+):
+
+    conexao_criada_aqui = False
 
     try:
 
-        net_connect = ConnectHandler(
-            **dados_switch(ip_sw)
-        )
+        # ==================================================
+        # CONECTAR AO SWITCH
+        # ==================================================
+
+        if net_connect is None:
+
+            resultado_conexao = conexao_switch.conectar_switch(
+                ip_sw,
+                "config_vlan_output.txt"
+            )
+
+            if not resultado_conexao["sucesso"]:
+
+                return {
+                    "sucesso": False,
+                    "tipo": resultado_conexao["tipo"],
+                    "titulo": resultado_conexao["titulo"],
+                    "mensagem": resultado_conexao["mensagem"]
+                }
+
+            net_connect = resultado_conexao["conexao"]
+
+            conexao_criada_aqui = True
+
+
+        # ==================================================
+        # CRIAR VLAN
+        # ==================================================
 
         config_commands = [
             f"vlan {vlan_id}",
@@ -99,10 +181,22 @@ def criar_vlan(ip_sw, vlan_id, vlan_nome):
             config_commands
         )
 
-        # Salva na NVRAM
+
+        # ==================================================
+        # SALVAR NA NVRAM
+        # ==================================================
+
         net_connect.save_config()
 
-        net_connect.disconnect()
+
+        # ==================================================
+        # DESCONECTAR SOMENTE SE CONECTOU AQUI
+        # ==================================================
+
+        if conexao_criada_aqui:
+
+            net_connect.disconnect()
+
 
         return {
             "sucesso": True,
@@ -115,9 +209,22 @@ def criar_vlan(ip_sw, vlan_id, vlan_nome):
 
     except Exception as erro:
 
+        if conexao_criada_aqui and net_connect:
+
+            try:
+                net_connect.disconnect()
+            except:
+                pass
+
         return {
             "sucesso": False,
-            "erro": str(erro)
+            "tipo": "desconhecido",
+            "titulo": "Erro ao criar VLAN",
+            "mensagem": (
+                f"Ocorreu um erro ao criar "
+                f"a VLAN {vlan_id}.\n\n"
+                f"Detalhes técnicos:\n{erro}"
+            )
         }
 
 
@@ -125,13 +232,45 @@ def criar_vlan(ip_sw, vlan_id, vlan_nome):
 # ALTERAR NOME DA VLAN
 # ==================================================
 
-def alterar_vlan(ip_sw, vlan_id, vlan_nome):
+def alterar_vlan(
+    vlan_id,
+    vlan_nome,
+    ip_sw=None,
+    net_connect=None
+):
+
+    conexao_criada_aqui = False
 
     try:
 
-        net_connect = ConnectHandler(
-            **dados_switch(ip_sw)
-        )
+        # ==================================================
+        # CONECTAR AO SWITCH
+        # ==================================================
+
+        if net_connect is None:
+
+            resultado_conexao = conexao_switch.conectar_switch(
+                ip_sw,
+                "config_vlan_output.txt"
+            )
+
+            if not resultado_conexao["sucesso"]:
+
+                return {
+                    "sucesso": False,
+                    "tipo": resultado_conexao["tipo"],
+                    "titulo": resultado_conexao["titulo"],
+                    "mensagem": resultado_conexao["mensagem"]
+                }
+
+            net_connect = resultado_conexao["conexao"]
+
+            conexao_criada_aqui = True
+
+
+        # ==================================================
+        # ALTERAR VLAN
+        # ==================================================
 
         config_commands = [
             f"vlan {vlan_id}",
@@ -142,10 +281,22 @@ def alterar_vlan(ip_sw, vlan_id, vlan_nome):
             config_commands
         )
 
-        # Salva na NVRAM
+
+        # ==================================================
+        # SALVAR NA NVRAM
+        # ==================================================
+
         net_connect.save_config()
 
-        net_connect.disconnect()
+
+        # ==================================================
+        # DESCONECTAR SOMENTE SE CONECTOU AQUI
+        # ==================================================
+
+        if conexao_criada_aqui:
+
+            net_connect.disconnect()
+
 
         return {
             "sucesso": True,
@@ -158,7 +309,20 @@ def alterar_vlan(ip_sw, vlan_id, vlan_nome):
 
     except Exception as erro:
 
+        if conexao_criada_aqui and net_connect:
+
+            try:
+                net_connect.disconnect()
+            except:
+                pass
+
         return {
             "sucesso": False,
-            "erro": str(erro)
+            "tipo": "desconhecido",
+            "titulo": "Erro ao alterar VLAN",
+            "mensagem": (
+                f"Ocorreu um erro ao alterar "
+                f"a VLAN {vlan_id}.\n\n"
+                f"Detalhes técnicos:\n{erro}"
+            )
         }

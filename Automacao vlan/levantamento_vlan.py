@@ -1,26 +1,52 @@
-from netmiko import ConnectHandler
+import conexao_switch
 
+
+# ==================================================
+# BUSCAR VLANS
+# ==================================================
 
 def buscar_vlans(ip_sw):
 
-    Network_Device = {
-        "host": ip_sw,
-        "username": "admin",
-        "password": "admin",
-        "device_type": "cisco_ios"
-    }
-
     try:
-        net_connect = ConnectHandler(**Network_Device)
 
-        # Executa o comando no switch
-        resultado = net_connect.send_command("show vlan brief")
+        # ==================================================
+        # CONECTAR AO SWITCH
+        # ==================================================
+
+        resultado_conexao = conexao_switch.conectar_switch(ip_sw)
+
+        # Verifica se ocorreu algum erro na conexão
+        if not resultado_conexao["sucesso"]:
+
+            return {
+                "sucesso": False,
+                "tipo": resultado_conexao["tipo"],
+                "titulo": resultado_conexao["titulo"],
+                "mensagem": resultado_conexao["mensagem"]
+            }
+
+
+        # Recupera a conexão Netmiko
+        net_connect = resultado_conexao["conexao"]
+
+
+        # ==================================================
+        # EXECUTAR SHOW VLAN
+        # ==================================================
+
+        resultado = net_connect.send_command(
+            "show vlan brief"
+        )
 
         net_connect.disconnect()
 
+
+        # ==================================================
+        # TRATAR RESULTADO
+        # ==================================================
+
         vlans = []
 
-        # Analisa cada linha retornada pelo switch
         for linha in resultado.splitlines():
 
             partes = linha.split()
@@ -31,10 +57,18 @@ def buscar_vlans(ip_sw):
                 vlan_id = partes[0]
 
                 # Segunda coluna é o nome da VLAN
-                vlan_nome = partes[1] if len(partes) > 1 else ""
+                vlan_nome = (
+                    partes[1]
+                    if len(partes) > 1
+                    else ""
+                )
 
                 # Terceira coluna é o status
-                vlan_status = partes[2] if len(partes) > 2 else ""
+                vlan_status = (
+                    partes[2]
+                    if len(partes) > 2
+                    else ""
+                )
 
                 vlans.append({
                     "vlan_id": vlan_id,
@@ -42,19 +76,60 @@ def buscar_vlans(ip_sw):
                     "status": vlan_status
                 })
 
-        return vlans
+
+        # ==================================================
+        # RETORNO DE SUCESSO
+        # ==================================================
+
+        return {
+            "sucesso": True,
+            "vlans": vlans
+        }
+
+
+    # ==================================================
+    # OUTROS ERROS
+    # ==================================================
 
     except Exception as erro:
 
-        print(f"Erro ao consultar VLANs: {erro}")
+        return {
+            "sucesso": False,
+            "tipo": "desconhecido",
+            "titulo": "Erro ao buscar VLANs",
+            "mensagem": (
+                "Ocorreu um erro ao consultar as VLANs.\n\n"
+                f"Detalhes técnicos:\n{erro}"
+            )
+        }
 
-        return []
 
-# Executa somente quando rodar levantamento_vlan.py diretamente
+# ==================================================
+# TESTE DIRETO DO ARQUIVO
+# ==================================================
+
 if __name__ == "__main__":
 
-    ip_sw = input("Digite o IP do switch: ")
+    ip_sw = input(
+        "Digite o IP do switch: "
+    )
 
     resultado = buscar_vlans(ip_sw)
 
-    print(resultado)
+    if resultado["sucesso"]:
+
+        print("\nVLANs encontradas:\n")
+
+        for vlan in resultado["vlans"]:
+
+            print(
+                f'VLAN {vlan["vlan_id"]} | '
+                f'{vlan["name"]} | '
+                f'{vlan["status"]}'
+            )
+
+    else:
+
+        print("\nERRO:")
+        print(resultado["titulo"])
+        print(resultado["mensagem"])

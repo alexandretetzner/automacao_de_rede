@@ -1,33 +1,82 @@
-from netmiko import ConnectHandler
+import conexao_switch
 from datetime import datetime
 import os
 
 
-def obter_backup(ip_sw):
+# ==================================================
+# OBTER BACKUP DO SWITCH
+# ==================================================
 
-    Network_Device = {
-        "host": ip_sw,
-        "username": "admin",
-        "password": "admin",
-        "device_type": "cisco_ios"
-    }
+def obter_backup(ip_sw=None, net_connect=None):
+
+    conexao_criada_aqui = False
 
     try:
-        net_connect = ConnectHandler(**Network_Device)
 
-        # Descobre o hostname
+        # ==================================================
+        # CONECTAR AO SWITCH
+        # ==================================================
+
+        # Se não recebeu uma conexão aberta,
+        # cria uma nova conexão.
+        if net_connect is None:
+
+            resultado_conexao = conexao_switch.conectar_switch(
+                ip_sw,
+                "backup_output.txt"
+            )
+
+            if not resultado_conexao["sucesso"]:
+
+                return {
+                    "sucesso": False,
+                    "tipo": resultado_conexao["tipo"],
+                    "titulo": resultado_conexao["titulo"],
+                    "mensagem": resultado_conexao["mensagem"]
+                }
+
+            net_connect = resultado_conexao["conexao"]
+
+            # Marca que esta função criou a conexão
+            conexao_criada_aqui = True
+
+
+        # ==================================================
+        # IDENTIFICAR HOSTNAME
+        # ==================================================
+
         prompt = net_connect.find_prompt()
 
-        hostname = prompt.replace("#", "").replace(">", "").strip()
+        hostname = (
+            prompt
+            .replace("#", "")
+            .replace(">", "")
+            .strip()
+        )
 
-        # Pega a configuração atual
+
+        # ==================================================
+        # OBTER RUNNING-CONFIG
+        # ==================================================
+
         configuracao = net_connect.send_command(
             "show running-config"
         )
 
-        net_connect.disconnect()
 
-        # Data e hora para o nome do arquivo
+        # ==================================================
+        # DESCONECTAR SOMENTE SE CONECTOU AQUI
+        # ==================================================
+
+        if conexao_criada_aqui:
+
+            net_connect.disconnect()
+
+
+        # ==================================================
+        # CRIAR NOME DO ARQUIVO
+        # ==================================================
+
         data_hora = datetime.now().strftime(
             "%Y-%m-%d_%H-%M-%S"
         )
@@ -36,6 +85,11 @@ def obter_backup(ip_sw):
             f"{hostname}_{data_hora}.cfg"
         )
 
+
+        # ==================================================
+        # RETORNO
+        # ==================================================
+
         return {
             "sucesso": True,
             "hostname": hostname,
@@ -43,13 +97,36 @@ def obter_backup(ip_sw):
             "configuracao": configuracao
         }
 
+
+    # ==================================================
+    # OUTROS ERROS
+    # ==================================================
+
     except Exception as erro:
+
+        # Se essa função abriu a conexão,
+        # ela também é responsável por fechar.
+        if conexao_criada_aqui and net_connect:
+
+            try:
+                net_connect.disconnect()
+            except:
+                pass
+
 
         return {
             "sucesso": False,
-            "erro": str(erro)
+            "tipo": "desconhecido",
+            "titulo": "Erro ao realizar backup",
+            "mensagem": (
+                "Ocorreu um erro ao realizar "
+                "o backup do switch.\n\n"
+                f"Detalhes técnicos:\n{erro}"
+            )
         }
-
+# ==================================================
+# SALVAR BACKUP LOCAL
+# ==================================================
 
 def salvar_local(resultado_backup, caminho):
 
@@ -70,14 +147,22 @@ def salvar_local(resultado_backup, caminho):
                 resultado_backup["configuracao"]
             )
 
+
         return {
             "sucesso": True,
             "arquivo": arquivo
         }
 
+
     except Exception as erro:
 
         return {
             "sucesso": False,
-            "erro": str(erro)
+            "tipo": "arquivo",
+            "titulo": "Erro ao salvar backup",
+            "mensagem": (
+                "Não foi possível salvar "
+                "o arquivo de backup.\n\n"
+                f"Detalhes técnicos:\n{erro}"
+            )
         }
