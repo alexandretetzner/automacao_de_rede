@@ -966,6 +966,23 @@ aba_config = abas.add(
 
 
 # ==================================================
+# ÁREA ROLÁVEL - ABA CONFIGURAÇÃO
+# ==================================================
+
+scroll_config = ctk.CTkScrollableFrame(
+    aba_config,
+    fg_color="transparent"
+)
+
+scroll_config.pack(
+    fill="both",
+    expand=True,
+    padx=5,
+    pady=5
+)
+
+
+# ==================================================
 # ==================================================
 # ABA TOOLS
 # ==================================================
@@ -1105,7 +1122,7 @@ lista_vlans.pack(
 # ==================================================
 
 titulo_config = ctk.CTkLabel(
-    aba_config,
+    scroll_config,
     text="Configuração do Switch",
     font=("Arial", 18, "bold")
 )
@@ -1120,7 +1137,7 @@ titulo_config.pack(
 # ==================================================
 
 frame_switch_config = ctk.CTkFrame(
-    aba_config
+    scroll_config
 )
 
 frame_switch_config.pack(
@@ -1162,7 +1179,7 @@ campo_hostname.grid(
 # ==================================================
 
 frame_backup_config = ctk.CTkFrame(
-    aba_config
+    scroll_config
 )
 
 frame_backup_config.pack(
@@ -1262,7 +1279,7 @@ check_backup_sftp.grid(
 # ==================================================
 
 frame_sftp = ctk.CTkFrame(
-    aba_config
+    scroll_config
 )
 
 
@@ -1362,7 +1379,7 @@ campo_sftp_diretorio.grid(
 # ==================================================
 
 frame_vlan = ctk.CTkFrame(
-    aba_config
+    scroll_config
 )
 
 frame_vlan.pack(
@@ -1418,7 +1435,7 @@ botao_adicionar_vlan.grid(
 # ==================================================
 
 lista_config = ctk.CTkTextbox(
-    aba_config,
+    scroll_config,
     width=700,
     height=80
 )
@@ -1434,7 +1451,7 @@ lista_config.pack(
 # ==================================================
 
 frame_botoes_config = ctk.CTkFrame(
-    aba_config
+    scroll_config
 )
 
 frame_botoes_config.pack(
@@ -1475,7 +1492,7 @@ botao_limpar.grid(
 # ==================================================
 
 lista_resultado = ctk.CTkTextbox(
-    aba_config,
+    scroll_config,
     width=700,
     height=100
 )
@@ -1491,7 +1508,7 @@ lista_resultado.pack(
 # ==================================================
 
 status_config = ctk.CTkLabel(
-    aba_config,
+    scroll_config,
     text="Aguardando configuração..."
 )
 

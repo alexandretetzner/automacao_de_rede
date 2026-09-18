@@ -1,5 +1,5 @@
-from netmiko import ConnectHandler
-
+#from netmiko import ConnectHandler
+import conexao_switch
 
 # ==================================================
 # CONSULTAR HOSTNAME
@@ -16,7 +16,7 @@ def consultar_hostname(ip_sw):
 
     try:
 
-        net_connect = ConnectHandler(**Network_Device)
+        net_connect = conexao_switch.conectar_switch(ip_sw)
 
         prompt = net_connect.find_prompt()
 
@@ -48,17 +48,9 @@ def consultar_hostname(ip_sw):
 
 def alterar_hostname(ip_sw, novo_hostname):
 
-    Network_Device = {
-        "host": ip_sw,
-        "username": "admin",
-        "password": "admin",
-        "device_type": "cisco_ios",
-        "session_log": "config_hostname_output.txt"
-    }
-
     try:
 
-        net_connect = ConnectHandler(**Network_Device)
+        net_connect = conexao_switch.conectar_switch(ip_sw, "config_hostname_output.txt")
 
         # Descobre hostname atual
         prompt = net_connect.find_prompt()

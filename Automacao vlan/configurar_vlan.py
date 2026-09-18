@@ -1,5 +1,4 @@
-from netmiko import ConnectHandler
-
+import conexao_switch
 
 # ==================================================
 # DADOS DE CONEXÃO
@@ -24,9 +23,7 @@ def consultar_vlan(ip_sw, vlan_id):
 
     try:
 
-        net_connect = ConnectHandler(
-            **dados_switch(ip_sw)
-        )
+        net_connect = conexao_switch.conectar_switch(ip_sw,"config_vlan_output.txt")
 
         resultado = net_connect.send_command(
             f"show vlan id {vlan_id}"
