@@ -1,9 +1,13 @@
 from netmiko import ConnectHandler
 
 
-def configurar_vlans(ip_sw, vlans):
+# ==================================================
+# DADOS DE CONEXÃO
+# ==================================================
 
-    Network_Device = {
+def dados_switch(ip_sw):
+
+    return {
         "host": ip_sw,
         "username": "admin",
         "password": "admin",
@@ -11,76 +15,149 @@ def configurar_vlans(ip_sw, vlans):
         "session_log": "config_vlan_output.txt"
     }
 
-    resultados = []
+
+# ==================================================
+# CONSULTAR VLAN
+# ==================================================
+
+def consultar_vlan(ip_sw, vlan_id):
 
     try:
 
-        # Conectando ao Switch
-        net_connect = ConnectHandler(**Network_Device)
-
-        # Percorre todas as VLANs recebidas do frontend
-        for Vlan_ID, Vlan_Name in vlans.items():
-
-            Command_vlan = net_connect.send_command(
-                "show vlan id " + str(Vlan_ID),
-                use_textfsm=True
-            )
-
-            # VLAN não existe
-            if Command_vlan == "VLAN id " + str(Vlan_ID) + " not found in current VLAN database":
-
-                config_commands = [
-                    "vlan " + str(Vlan_ID),
-                    "name " + str(Vlan_Name)
-                ]
-
-                net_connect.send_config_set(
-                    config_commands
-                )
-
-                resultados.append(
-                    f"VLAN {Vlan_ID} - {Vlan_Name} criada com sucesso."
-                )
-
-            else:
-
-                Vlan_criada = [
-                    item["vlan_name"]
-                    for item in Command_vlan
-                    if item["vlan_id"] == str(Vlan_ID)
-                ]
-
-                if [
-                    item["vlan_id"]
-                    for item in Command_vlan
-                    if item["vlan_name"] == str(Vlan_Name)
-                ]:
-
-                    resultados.append(
-                        f"VLAN {Vlan_ID} - {Vlan_Name} já existe e está correta."
-                    )
-
-                else:
-
-                    resultados.append(
-                        f"VLAN {Vlan_ID} existe com outro nome: {Vlan_criada}"
-                    )
-
-        # Salva configuração na NVRAM
-        net_connect.save_config()
-
-        # Validação final
-        output_vlan = net_connect.send_command(
-            "show vlan brief"
+        net_connect = ConnectHandler(
+            **dados_switch(ip_sw)
         )
+
+        resultado = net_connect.send_command(
+            f"show vlan id {vlan_id}"
+        )
+
+        net_connect.disconnect()
+
+        # VLAN NÃO EXISTE
+        if "not found in current VLAN database" in resultado:
+
+            return {
+                "sucesso": True,
+                "existe": False,
+                "vlan_id": str(vlan_id),
+                "nome": None
+            }
+
+
+        # VLAN EXISTE
+        # Procura a linha que começa com o ID da VLAN
+
+        for linha in resultado.splitlines():
+
+            partes = linha.split()
+
+            if partes and partes[0] == str(vlan_id):
+
+                nome_vlan = partes[1]
+
+                return {
+                    "sucesso": True,
+                    "existe": True,
+                    "vlan_id": str(vlan_id),
+                    "nome": nome_vlan
+                }
+
+
+        return {
+            "sucesso": False,
+            "erro": (
+                f"Não foi possível identificar "
+                f"a VLAN {vlan_id}."
+            )
+        }
+
+
+    except Exception as erro:
+
+        return {
+            "sucesso": False,
+            "erro": str(erro)
+        }
+
+
+# ==================================================
+# CRIAR VLAN
+# ==================================================
+
+def criar_vlan(ip_sw, vlan_id, vlan_nome):
+
+    try:
+
+        net_connect = ConnectHandler(
+            **dados_switch(ip_sw)
+        )
+
+        config_commands = [
+            f"vlan {vlan_id}",
+            f"name {vlan_nome}"
+        ]
+
+        net_connect.send_config_set(
+            config_commands
+        )
+
+        # Salva na NVRAM
+        net_connect.save_config()
 
         net_connect.disconnect()
 
         return {
             "sucesso": True,
-            "resultados": resultados,
-            "validacao": output_vlan
+            "mensagem": (
+                f"VLAN {vlan_id} - {vlan_nome} "
+                f"criada com sucesso."
+            )
         }
+
+
+    except Exception as erro:
+
+        return {
+            "sucesso": False,
+            "erro": str(erro)
+        }
+
+
+# ==================================================
+# ALTERAR NOME DA VLAN
+# ==================================================
+
+def alterar_vlan(ip_sw, vlan_id, vlan_nome):
+
+    try:
+
+        net_connect = ConnectHandler(
+            **dados_switch(ip_sw)
+        )
+
+        config_commands = [
+            f"vlan {vlan_id}",
+            f"name {vlan_nome}"
+        ]
+
+        net_connect.send_config_set(
+            config_commands
+        )
+
+        # Salva na NVRAM
+        net_connect.save_config()
+
+        net_connect.disconnect()
+
+        return {
+            "sucesso": True,
+            "mensagem": (
+                f"VLAN {vlan_id} alterada para "
+                f"{vlan_nome} com sucesso."
+            )
+        }
+
 
     except Exception as erro:
 
