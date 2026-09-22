@@ -1,0 +1,57 @@
+{
+    "fortigate": {
+        "management_ip": "192.168.68.66",
+        "vdom": "root",
+        "wan_interface": "port2",
+        "lan_interface": "port3",
+        "local_address_object": "LAN-FORTIGATE",
+        "remote_address_object": "LAN-PALOALTO"
+    },
+
+    "paloalto": {
+        "management_ip": "192.168.71.11",
+        "vsys": "vsys1",
+        "wan_interface": "ethernet1/1",
+        "lan_interface": "ethernet1/2",
+        "virtual_router": "default",
+        "internal_zone": "INTERNA",
+        "external_zone": "EXTERNA",
+        "vpn_zone": "VPN",
+        "tunnel_interface": "tunnel.1",
+        "tunnel_address_object": "TUNNEL1",
+        "static_route_name": "ROTA-FORTIGATE",
+        "policy_lan_to_vpn": "INTERNA-TO-VPN8",
+        "policy_vpn_to_lan": "VPN-TO-INTERNA"
+    },
+
+    "vpn": {
+        "fortigate_phase1_name": "VPN-PALOALTO",
+        "fortigate_phase2_name": "VPN-PALOALTO-P2",
+
+        "paloalto_ike_profile": "IKE-FORTIGATE",
+        "paloalto_ike_gateway": "IKE-GW-FORTIGATE",
+        "paloalto_ipsec_profile": "IPSEC-FORTIGATE",
+        "paloalto_ipsec_tunnel": "VPN-FORTIGATE",
+        "paloalto_proxy_id": "PROXY-FORTIGATE",
+
+        "fortigate_wan_ip": "200.201.100.2",
+        "paloalto_wan_ip": "200.201.186.2",
+
+        "fortigate_network": "192.168.10.0",
+        "fortigate_mask": "255.255.255.0",
+
+        "paloalto_network": "192.168.20.0",
+        "paloalto_mask": "255.255.255.0",
+
+        "fortigate_tunnel_ip": "169.255.1.1",
+        "paloalto_tunnel_ip": "169.255.1.2",
+        "tunnel_mask": "255.255.255.252",
+
+        "phase1_proposal": "des-sha256",
+        "phase2_proposal": "des-sha256",
+        "dh_group": "20",
+
+        "phase1_lifetime": 28800,
+        "phase2_lifetime": 3600
+    }
+}

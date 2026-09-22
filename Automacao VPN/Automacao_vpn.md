@@ -24,6 +24,37 @@ Para este planejamento será utilizada uma VPN do tipo **Route-Based**, utilizan
 
 O roteamento entre as redes `192.168.10.0/24` e `192.168.20.0/24` será realizado através das interfaces da VPN, utilizando os endereços `169.255.1.1/30` no FortiGate e `169.255.1.2/30` no Palo Alto.
 
+### 2.2 Considerações para cenários com NAT ou Cloud
+
+O cenário utilizado neste documento considera que os endereços IP públicos estão configurados diretamente nas interfaces WAN do FortiGate e do Palo Alto.
+
+Dessa forma, cada firewall utiliza diretamente seu endereço WAN para estabelecer a comunicação com o peer remoto da VPN.
+
+Em outros ambientes, principalmente em Cloud, o firewall pode utilizar um endereço IP privado em sua interface WAN e ter um endereço público associado através de NAT.
+
+Exemplo:
+
+FortiGate
+IP da interface: 10.10.10.10
+IP público/NAT: 200.201.100.2
+        |
+        | NAT
+        |
+     Internet
+        |
+Palo Alto
+IP público: 200.201.186.2
+
+Nesse cenário, os parâmetros utilizados pela automação podem precisar ser adaptados, pois o endereço IP configurado na interface do firewall pode ser diferente do endereço público utilizado pelo peer remoto para estabelecer a VPN.
+
+Além do endereço do peer, ambientes com NAT podem exigir considerações adicionais, como:
+
+- utilização de NAT Traversal (NAT-T);
+- utilização de UDP/4500 após a detecção de NAT;
+- configuração de Local IKE ID e Peer IKE ID, quando necessário;
+- diferenciação entre o IP privado da interface e o IP público utilizado na VPN.
+
+Esses parâmetros devem ser definidos de acordo com a arquitetura do ambiente e com a forma como cada fabricante realiza a identificação dos peers durante a negociação IKE.
 
 ## 3. Parâmetros da VPN
 
@@ -191,7 +222,7 @@ Existem diferentes métodos que podem ser utilizados para realizar a automação
 
 | Método   | FortiGate | Palo Alto                  | Considerações                                                                                                                                     |
 | -------- | --------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API      | REST API  | PAN-OS XML API | Método utilizado neste planejamento, permitindo trabalhar diretamente com os objetos de configuração de cada fabricante.                          |
+| API      | REST API  | PAN-OS XML API             | Método utilizado neste planejamento, permitindo trabalhar diretamente com os objetos de configuração de cada fabricante.                          |
 | Netmiko  | SSH/CLI   | SSH/CLI                    | Permite realizar configurações através da CLI utilizando uma biblioteca voltada para equipamentos de rede e com suporte a diferentes fabricantes. |
 | Paramiko | SSH/CLI   | SSH/CLI                    | Permite realizar conexões SSH diretamente através do Python, porém exige maior controle da sessão, envio dos comandos e tratamento das respostas. |
 
