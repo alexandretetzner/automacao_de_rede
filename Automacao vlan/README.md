@@ -12,8 +12,7 @@ A aplicação permite:
 
 - Conectar ao switch através de SSH.
 - Consultar as VLANs existentes.
-- Criar novas VLANs.
-- Alterar o nome de VLANs existentes.
+- Criar e alterar VLANs.
 - Consultar e alterar o hostname do switch.
 - Validar as configurações realizadas.
 - Salvar a configuração do equipamento.
@@ -127,3 +126,9 @@ Após a execução será aberta a interface gráfica da automação.
 O ambiente utilizado nos testes possui certificado e credenciais próprias de laboratório.
 
 Os endereços e parâmetros de acesso ao equipamento devem ser ajustados de acordo com o ambiente onde a automação será utilizada.
+
+## Scripts de desenvolvimento
+
+A pasta `Desenvolvimento e testes` contém scripts utilizados nas etapas iniciais do projeto para testar a conexão e a automação das configurações do switch.
+
+Após os testes iniciais, as funcionalidades foram separadas em módulos e integradas à interface gráfica da aplicação.
