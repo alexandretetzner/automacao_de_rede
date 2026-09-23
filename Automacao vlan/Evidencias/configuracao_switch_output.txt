@@ -1,0 +1,226 @@
+
+SW_NEW#
+SW_NEW#terminal width 511
+SW_NEW#terminal length 0
+SW_NEW#
+SW_NEW#
+SW_NEW#
+SW_NEW#show running-config
+Building configuration...
+
+  
+Current configuration : 929 bytes
+!
+! Last configuration change at 15:07:57 UTC Wed Sep 23 2026
+!
+version 15.2
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+service compress-config
+!
+hostname SW_NEW
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+username ******** privilege 15 secret 5 $1$9jJL$w6Iqp8r25LvhiRjIMBcoO.
+no aaa new-model
+!
+!
+!
+!
+!
+!
+!
+!
+ip domain-name laboratorio.local
+ip cef
+no ipv6 cef
+!
+!
+!
+spanning-tree mode rapid-pvst
+spanning-tree extend system-id
+!
+vlan internal allocation policy ascending
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Ethernet0/0
+!
+interface Ethernet0/1
+!
+interface Ethernet0/2
+!
+interface Ethernet0/3
+!
+interface Vlan1
+ ip address 192.168.71.10 255.255.252.0
+!
+ip forward-protocol nd
+!
+no ip http server
+no ip http secure-server
+!
+ip ssh version 2
+!
+!
+!
+!
+!
+control-plane
+!
+!
+line con 0
+ logging synchronous
+line aux 0
+line vty 0 4
+ login local
+ transport input ssh
+!
+!
+end
+
+SW_NEW#
+SW_NEW#
+SW_NEW#
+SW_NEW#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+SW_NEW(config)#
+SW_NEW(config)#hostname SWITCH_AUTOMACAO
+SWITCH_AUTOMACAO(config)#
+SWITCH_AUTOMACAO(config)#end
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#write mem
+Building configuration...
+
+  Compressed configuration from 948 bytes to 676 bytes[OK]
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#show vlan id 10
+VLAN id 10 not found in current VLAN database
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+SWITCH_AUTOMACAO(config)#
+SWITCH_AUTOMACAO(config)#vlan 10
+SWITCH_AUTOMACAO(config-vlan)#name VLAN_DADOS
+SWITCH_AUTOMACAO(config-vlan)#
+SWITCH_AUTOMACAO(config-vlan)#end
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#write mem
+Building configuration...
+
+  Compressed configuration from 948 bytes to 678 bytes[OK]
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#show vlan id 20
+VLAN id 20 not found in current VLAN database
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+SWITCH_AUTOMACAO(config)#
+SWITCH_AUTOMACAO(config)#vlan 20
+SWITCH_AUTOMACAO(config-vlan)#name VLAN_VOZ
+SWITCH_AUTOMACAO(config-vlan)#
+SWITCH_AUTOMACAO(config-vlan)#end
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#write mem
+Building configuration...
+
+  Compressed configuration from 948 bytes to 678 bytes[OK]
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#show vlan id 50
+VLAN id 50 not found in current VLAN database
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#configure terminal
+Enter configuration commands, one per line.  End with CNTL/Z.
+SWITCH_AUTOMACAO(config)#
+SWITCH_AUTOMACAO(config)#vlan 50
+SWITCH_AUTOMACAO(config-vlan)#name VLAN_SEGURANCA
+SWITCH_AUTOMACAO(config-vlan)#
+SWITCH_AUTOMACAO(config-vlan)#end
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#write mem
+Building configuration...
+
+  Compressed configuration from 948 bytes to 678 bytes[OK]
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#show vlan id 10
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+10   VLAN_DADOS                       active    
+
+VLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2
+---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------
+10   enet  100010     1500  -      -      -        -    -        0      0   
+
+Remote SPAN VLAN
+----------------
+Disabled
+
+Primary Secondary Type              Ports
+------- --------- ----------------- ------------------------------------------
+
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#show vlan id 20
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+20   VLAN_VOZ                         active    
+
+VLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2
+---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------
+20   enet  100020     1500  -      -      -        -    -        0      0   
+
+Remote SPAN VLAN
+----------------
+Disabled
+
+Primary Secondary Type              Ports
+------- --------- ----------------- ------------------------------------------
+
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#show vlan id 50
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+50   VLAN_SEGURANCA                   active    
+
+VLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2
+---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------
+50   enet  100050     1500  -      -      -        -    -        0      0   
+
+Remote SPAN VLAN
+----------------
+Disabled
+
+Primary Secondary Type              Ports
+------- --------- ----------------- ------------------------------------------
+
+SWITCH_AUTOMACAO#
+SWITCH_AUTOMACAO#exit
