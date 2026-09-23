@@ -1,6 +1,6 @@
 {
     "fortigate": {
-        "management_ip": "192.168.68.66",
+        "management_ip": "192.168.71.12",
         "vdom": "root",
         "wan_interface": "port2",
         "lan_interface": "port3",

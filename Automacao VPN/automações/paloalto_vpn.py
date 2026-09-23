@@ -397,9 +397,7 @@ def configurar_ike_gateway():
                             <enable>yes</enable>
                         </dpd>
 
-                        <ike-crypto-profile>
-                            {IKE_PROFILE}
-                        </ike-crypto-profile>
+                        <ike-crypto-profile>{IKE_PROFILE}</ike-crypto-profile>
                     </ikev2>
 
                     <version>ikev2</version>
@@ -588,9 +586,7 @@ def configurar_ipsec_crypto_profile():
                     </authentication>
                 </esp>
 
-                <dh-group>
-                    group{DH_GROUP}
-                </dh-group>
+                <dh-group>group{DH_GROUP}</dh-group>
 
                 <lifetime>
                     <hours>{PHASE2_LIFETIME // 3600}</hours>
@@ -1376,18 +1372,14 @@ def configurar_ipsec_tunnel():
                         </entry>
                     </proxy-id>
 
-                    <ipsec-crypto-profile>
-                        {IPSEC_PROFILE}
-                    </ipsec-crypto-profile>
+                    <ipsec-crypto-profile>{IPSEC_PROFILE}</ipsec-crypto-profile>
                 </auto-key>
 
                 <tunnel-monitor>
                     <enable>no</enable>
                 </tunnel-monitor>
 
-                <tunnel-interface>
-                    {TUNNEL_INTERFACE}
-                </tunnel-interface>
+                <tunnel-interface>{TUNNEL_INTERFACE}</tunnel-interface>
             </entry>
             """
 
