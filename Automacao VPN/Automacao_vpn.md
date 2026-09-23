@@ -244,6 +244,8 @@ Em caso de falha, a automação deverá:
 4. Executar o processo de rollback quando necessário.
 5. Informar ao usuário se a automação foi concluída com sucesso ou se ocorreu alguma falha.
 
+Caso seja encontrada uma divergência entre a configuração esperada e a configuração existente no equipamento, o script deverá informar qual parâmetro apresentou a divergência, apresentando o valor esperado e o valor encontrado.
+
 Os logs poderão ser armazenados em arquivo local e utilizados posteriormente para análise e troubleshooting.
 
 ## 8. Segurança e Boas Práticas
