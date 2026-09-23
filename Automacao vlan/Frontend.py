@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
 
-import logonsw
+
 import levantamento_vlan
 import backup_sw
 import configurar_vlan
@@ -1768,6 +1768,18 @@ botao_adicionar_vlan.grid(
     padx=15,
     pady=10
 )
+botao_limpar = ctk.CTkButton(
+    frame_vlan,
+    text="Limpar Lista",
+    command=limpar_vlans
+)
+
+botao_limpar.grid(
+    row=1,
+    column=5,
+    padx=(0, 15),
+    pady=10
+)
 
 
 # ==================================================
@@ -2001,21 +2013,6 @@ botao_configurar.grid(
     padx=10,
     pady=10
 )
-
-
-botao_limpar = ctk.CTkButton(
-    frame_botoes_config,
-    text="Limpar Lista",
-    command=limpar_vlans
-)
-
-botao_limpar.grid(
-    row=0,
-    column=1,
-    padx=10,
-    pady=10
-)
-
 
 # ==================================================
 # RESULTADO
